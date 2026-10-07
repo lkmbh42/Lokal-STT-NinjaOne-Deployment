@@ -1,0 +1,8 @@
+# The built app payload is 1.77 GB - too large for GitHub (100 MB file limit).
+# It is distributed via the internal file share / NinjaOne, and can be rebuilt
+# from an app folder with tools\build_release.py.
+*.zip
+
+# local test extractions / scratch
+/_out/
+*.log
