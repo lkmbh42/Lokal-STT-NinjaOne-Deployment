@@ -12,7 +12,7 @@ was extended (details: `Desktop\Playground\DS2-Support\README.md`).
 | `SHA256SUMS.txt` | Checksums of the zip and the exe |
 | `tools\` | Rebuild the zip / the shortcut (only needed for a new version) |
 
-Zip SHA-256: `61BB025D5918976E28E9DBA05592929E0D8417A6DBBC7A37A461C8E1BDF6D661`
+Zip SHA-256: `64B93D9176313E4B468CE29B87BE6767044179B6B92DF3A19FE6AD4A58789FD1`
 (also hard-coded in `ninjaone-install.ps1` – a different zip is refused).
 
 ## Why new scripts?

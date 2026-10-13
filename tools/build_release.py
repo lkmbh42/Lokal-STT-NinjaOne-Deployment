@@ -1,19 +1,22 @@
 """Build Lokal-STT-Portable-<version>.zip for NinjaOne from an app folder.
 
-    py -3 build_release.py
+    py -3 build_release.py [--source <zip>]
 
 Layout inside the zip (same as before):  Lokal-STT-Portable/<app files>
 plus  Lokal-STT-Portable/_deploy/Lokal-STT.lnk  (prebuilt shortcut, see make-shortcut.vbs)
 and   Lokal-STT-Portable/VERSION.txt
-Files whose paths were too long to unpack into the app folder are taken from the source zip.
+A few files have paths too long to unpack into the app folder; they are copied from
+the source zip (--source, default SOURCE_ZIP, or the previous release build).
 """
+import argparse
 import hashlib
 import zipfile
 from pathlib import Path
 
 VERSION = "1.1"
-NOTE = "DS2-Upload (Grundig/Olympus/Philips Diktate) - Frontend-Erweiterung, Server/EXE unveraendert"
-BUILT = "2026-10-07"
+NOTE = ("DS2-Upload (Grundig/Olympus/Philips Diktate) - Frontend-Erweiterung, Server/EXE unveraendert; "
+        "Rev 2026-10-13: DS2-Vorschau abspielbar + Asset-Cache-Busting")
+BUILT = "2026-10-13"
 PLAYGROUND = Path(r"C:\Users\alkasemh\Desktop\Playground")
 APP = PLAYGROUND / f"Lokal-STT-Portable-{VERSION}"
 SOURCE_ZIP = PLAYGROUND / "Steve" / "Lokal-STT-Portable.zip"  # the zip APP was unpacked from
@@ -34,13 +37,26 @@ def sha256(path):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--source", type=Path, default=SOURCE_ZIP,
+                    help="zip supplying the few long-path files that can't live in the app folder")
+    args = ap.parse_args()
+    source_zip = args.source
+    if not source_zip.is_file():
+        raise SystemExit(f"source zip not found: {source_zip} (pass --source <zip>)")
+
     files = sorted(p for p in APP.rglob("*") if p.is_file())
     names = {PREFIX + p.relative_to(APP).as_posix() for p in files}
 
-    with zipfile.ZipFile(SOURCE_ZIP) as src:
+    with zipfile.ZipFile(source_zip) as src:
         src_entries = {i.filename.replace("\\", "/"): i for i in src.infolist() if not i.filename.endswith(("/", "\\"))}
+    # Long-path files that can't live in the app folder, pulled from the source zip.
+    # Exclude the frontend (always taken from the app folder) and this script's own
+    # build artifacts, so the source may be a raw app zip OR a previous release build.
     missing = sorted(n for n in src_entries if n.startswith(PREFIX) and n not in names
-                     and not n.startswith(PREFIX + "_internal/frontend/"))
+                     and not n.startswith(PREFIX + "_internal/frontend/")
+                     and not n.startswith(PREFIX + "_deploy/")
+                     and n != PREFIX + "VERSION.txt")
     print(f"app files: {len(files)}   taken from source zip (long paths): {len(missing)}")
 
     version_txt = (f"Lokal-STT-Portable {VERSION}\r\n{NOTE}\r\nBuild: {BUILT}\r\n"
@@ -49,7 +65,7 @@ def main():
     with zipfile.ZipFile(OUT, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6, allowZip64=True) as z:
         for p in files:
             z.write(p, PREFIX + p.relative_to(APP).as_posix())
-        with zipfile.ZipFile(SOURCE_ZIP) as src:
+        with zipfile.ZipFile(source_zip) as src:
             for n in missing:
                 z.writestr(PREFIX + n[len(PREFIX):], src.read(src_entries[n]), compress_type=zipfile.ZIP_DEFLATED)
         z.write(SHORTCUT, PREFIX + "_deploy/Lokal-STT.lnk")
