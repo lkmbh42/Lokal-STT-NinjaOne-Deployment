@@ -18,9 +18,7 @@ NOTE = ("DS2/DSS-Upload (Grundig/Olympus/Philips Diktate) + ueberarbeitete Oberf
         "reine Frontend-Erweiterung, Server/EXE unveraendert (EXE SHA-256 identisch zu 1.1)")
 BUILT = "2026-11-10"
 PLAYGROUND = Path(r"C:\Users\alkasemh\Desktop\Playground")
-# The 1.2 frontend is applied in place to the 1.1 build folder, so the app folder keeps
-# its 1.1 name; override with --app if it lives elsewhere.
-APP = PLAYGROUND / "Lokal-STT-Portable-1.1"
+APP = PLAYGROUND / f"Lokal-STT-Portable-{VERSION}"   # override with --app if it lives elsewhere
 SOURCE_ZIP = PLAYGROUND / "Steve" / "Lokal-STT-Portable.zip"  # the zip APP was unpacked from
 KIT = Path(__file__).resolve().parent.parent
 OUT = KIT / f"Lokal-STT-Portable-{VERSION}.zip"
