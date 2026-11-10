@@ -13,12 +13,14 @@ import hashlib
 import zipfile
 from pathlib import Path
 
-VERSION = "1.1"
-NOTE = ("DS2-Upload (Grundig/Olympus/Philips Diktate) - Frontend-Erweiterung, Server/EXE unveraendert; "
-        "Rev 2026-10-13: DS2-Vorschau abspielbar + Asset-Cache-Busting")
-BUILT = "2026-10-13"
+VERSION = "1.2"
+NOTE = ("DS2/DSS-Upload (Grundig/Olympus/Philips Diktate) + ueberarbeitete Oberflaeche - "
+        "reine Frontend-Erweiterung, Server/EXE unveraendert (EXE SHA-256 identisch zu 1.1)")
+BUILT = "2026-11-10"
 PLAYGROUND = Path(r"C:\Users\alkasemh\Desktop\Playground")
-APP = PLAYGROUND / f"Lokal-STT-Portable-{VERSION}"
+# The 1.2 frontend is applied in place to the 1.1 build folder, so the app folder keeps
+# its 1.1 name; override with --app if it lives elsewhere.
+APP = PLAYGROUND / "Lokal-STT-Portable-1.1"
 SOURCE_ZIP = PLAYGROUND / "Steve" / "Lokal-STT-Portable.zip"  # the zip APP was unpacked from
 KIT = Path(__file__).resolve().parent.parent
 OUT = KIT / f"Lokal-STT-Portable-{VERSION}.zip"
@@ -40,13 +42,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", type=Path, default=SOURCE_ZIP,
                     help="zip supplying the few long-path files that can't live in the app folder")
+    ap.add_argument("--app", type=Path, default=APP, help="app folder to package (default: the patched build)")
     args = ap.parse_args()
     source_zip = args.source
+    app = args.app
     if not source_zip.is_file():
         raise SystemExit(f"source zip not found: {source_zip} (pass --source <zip>)")
+    if not app.is_dir():
+        raise SystemExit(f"app folder not found: {app} (pass --app <folder>)")
 
-    files = sorted(p for p in APP.rglob("*") if p.is_file())
-    names = {PREFIX + p.relative_to(APP).as_posix() for p in files}
+    files = sorted(p for p in app.rglob("*") if p.is_file())
+    names = {PREFIX + p.relative_to(app).as_posix() for p in files}
 
     with zipfile.ZipFile(source_zip) as src:
         src_entries = {i.filename.replace("\\", "/"): i for i in src.infolist() if not i.filename.endswith(("/", "\\"))}
@@ -60,11 +66,11 @@ def main():
     print(f"app files: {len(files)}   taken from source zip (long paths): {len(missing)}")
 
     version_txt = (f"Lokal-STT-Portable {VERSION}\r\n{NOTE}\r\nBuild: {BUILT}\r\n"
-                   f"EXE SHA-256: {sha256(APP / 'Lokal-STT-Portable.exe')}\r\n")
+                   f"EXE SHA-256: {sha256(app / 'Lokal-STT-Portable.exe')}\r\n")
 
     with zipfile.ZipFile(OUT, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6, allowZip64=True) as z:
         for p in files:
-            z.write(p, PREFIX + p.relative_to(APP).as_posix())
+            z.write(p, PREFIX + p.relative_to(app).as_posix())
         with zipfile.ZipFile(source_zip) as src:
             for n in missing:
                 z.writestr(PREFIX + n[len(PREFIX):], src.read(src_entries[n]), compress_type=zipfile.ZIP_DEFLATED)

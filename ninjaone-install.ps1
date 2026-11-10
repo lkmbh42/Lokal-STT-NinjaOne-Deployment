@@ -1,5 +1,5 @@
 <#
-  NinjaOne - install or update Lokal-STT-Portable 1.1 for all users on a device.
+  NinjaOne - install or update Lokal-STT-Portable 1.2 for all users on a device.
   Run As: SYSTEM.  Script timeout in NinjaOne: 30 minutes.
 
   Works under PowerShell Constrained Language Mode (__PSLockdownPolicy=4):
@@ -14,7 +14,7 @@ param(
     # ============================ CONFIG ============================
     # Where the device gets the zip: UNC share (readable by "Domain Computers"),
     # internal HTTPS URL, or just the file name of a NinjaOne script attachment.
-    [string]$Source = '\\srv1\configurator$\Packages\Lokal-STT-Portable-1.1.zip',
+    [string]$Source = '\\srv1\configurator$\Packages\Lokal-STT-Portable-1.2.zip',
     [string]$InstallDir = 'C:\Program Files\Lokal-STT',
     # ===============================================================
     # Only overridden for tests - keep the defaults in NinjaOne.
@@ -24,7 +24,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$ExpectedZipSha256 = '64B93D9176313E4B468CE29B87BE6767044179B6B92DF3A19FE6AD4A58789FD1'
+$ExpectedZipSha256 = '624E68F04FF264A43CF21A0FF5A38484039E8D891D664141A2DCA0270392F587'
 $ExpectedExeSha256 = '50148EAD01B7301A8BCF91D49ED549FBC5DA2AEC16DB4118E705BF22028BBF6D'
 $ExeName = 'Lokal-STT-Portable.exe'
 $ShortcutTargetDir = 'C:\Program Files\Lokal-STT\Lokal-STT-Portable'  # baked into _deploy\Lokal-STT.lnk
